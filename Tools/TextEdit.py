@@ -39,3 +39,11 @@ class TextEdit(QTextEdit):
         )
 
 
+    def keyPressEvent(self, event: QKeyEvent):
+        if event.matches(QKeySequence.Paste):
+            clipboard = QApplication.clipboard()
+            clipboard_text = clipboard.text()
+            self.insertPlainText(clipboard_text)
+        else:
+            super(TextEdit, self).keyPressEvent(event)
+
