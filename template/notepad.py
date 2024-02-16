@@ -71,6 +71,7 @@ class Ui_Notepad(object):
         self.actionSelect_all.setObjectName(u"actionSelect_all")
         self.actionTime_Date = QAction(Notepad)
         self.actionTime_Date.setObjectName(u"actionTime_Date")
+        self.actionTime_Date.setCheckable(True)
         self.actionFont = QAction(Notepad)
         self.actionFont.setObjectName(u"actionFont")
         self.actionStatus_bar = QAction(Notepad)

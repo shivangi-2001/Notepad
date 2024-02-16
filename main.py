@@ -1,6 +1,7 @@
 from PySide2.QtWidgets import *
 from PySide2.QtGui import  *
 from PySide2.QtCore import *
+from PySide2.QtPrintSupport import *
 import os
 
 from template.notepad import  Ui_Notepad
@@ -27,6 +28,7 @@ class NotepadApp(QMainWindow, Ui_Notepad):
         self.actionSave.triggered.connect(self.save)
         self.actionSave_As.triggered.connect(self.save_as)
         self.actionSave_all.triggered.connect(self.save_all)
+        self.actionPrint.triggered.connect(self.print)
         self.actionClose_tab.triggered.connect(self.close_tab)
         self.actionClose_window.triggered.connect(self.close_window)
         self.actionExit.triggered.connect(self.close_window)
@@ -43,6 +45,31 @@ class NotepadApp(QMainWindow, Ui_Notepad):
         self.statusBar.addPermanentWidget(self.line_number_label)
         self.statusBar.addPermanentWidget(self.column_number_label)
         self.statusBar.addPermanentWidget(self.character_count_label)
+
+        self.date_time = QLabel('')
+        self.actionTime_Date.triggered.connect(self.show_date_time)
+        self.statusBar.addPermanentWidget(self.date_time)
+        self.actionSelect_all.triggered.connect(self.select_all)
+        self.actionFont.triggered.connect(self.font_settings)
+
+    def font_settings(self):
+            (ok, font) = QFontDialog.getFont()
+            if ok:
+                self.text_edit.setFont(font)
+                self.plain_text_edit.setFont(font)
+
+
+    def select_all(self):
+        self.text_edit.selectAll()
+
+
+    def show_date_time(self):
+        print(self.actionTime_Date.isChecked())
+        if self.actionTime_Date.isChecked():
+            current_date_time = QDateTime.currentDateTime().toString("yyyy-MM-dd hh:mm:ss")
+            self.date_time.setText(current_date_time)
+        else:
+            self.statusBar.removeWidget(self.date_time)
 
     def zoom_in(self):
         self.text_edit.zoomInF(1.5)
@@ -80,7 +107,6 @@ class NotepadApp(QMainWindow, Ui_Notepad):
         self.plain_text_edit = PlainTextEdit(new_tab)
         self.text_edit = TextEdit(new_tab)
         self.text_edit.textChanged.connect(lambda: self.handle_text_change(self.plain_text_edit, self.text_edit))
-
         layout.addWidget(self.plain_text_edit)
         layout.addWidget(self.text_edit)
         new_tab.setLayout(layout)
@@ -106,8 +132,7 @@ class NotepadApp(QMainWindow, Ui_Notepad):
 
             cursor = text_edit.textCursor()
             cursor.movePosition(QTextCursor.End)
-
-            print(plain_text_edit.textCursor().blockNumber(), text_edit.textCursor().blockNumber())
+            plain_text_edit.setTextCursor(cursor)
 
             current_line = cursor.blockNumber() + 1
             current_column = cursor.columnNumber() + 1
@@ -153,8 +178,25 @@ class NotepadApp(QMainWindow, Ui_Notepad):
 
                 with open(self.file_path, 'r') as file:
                     content = file.read()
-                    new_tab.findChild(TextEdit).setPlainText(content)
+                    text_edit = new_tab.findChild(TextEdit)
+                    plain_text_edit = new_tab.findChild(PlainTextEdit)
 
+                    text_edit.setPlainText(content)
+                    plain_text_edit.setPlainText('\n'.join(map(str, range(1, plain_text_edit.number + 1))))
+
+                    # Set the cursor position to the top
+                    text_edit.moveCursor(QTextCursor.Start)
+                    plain_text_edit.moveCursor(QTextCursor.Start)
+
+                    self.text_edit.verticalScrollBar().valueChanged.connect(
+                        lambda value: self.plain_text_edit.verticalScrollBar().setValue(value))
+
+    def print(self):
+        printer = QPrinter(QPrinter.HighResolution)
+        dialog = QPrintDialog(printer, self)
+
+        if dialog.exec_() == QPrintDialog.Accepted:
+            self.textEdit.print_(printer)
 
     def save_as(self):
         current_tab = self.tabWidget.currentWidget()

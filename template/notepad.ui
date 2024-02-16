@@ -282,6 +282,9 @@
    </property>
   </action>
   <action name="actionTime_Date">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Time/Date</string>
    </property>

@@ -38,7 +38,6 @@ class TextEdit(QTextEdit):
             """
         )
 
-
     def keyPressEvent(self, event: QKeyEvent):
         if event.matches(QKeySequence.Paste):
             clipboard = QApplication.clipboard()
