@@ -131,6 +131,12 @@
    <property name="enabled">
     <bool>true</bool>
    </property>
+   <property name="minimumSize">
+    <size>
+     <width>0</width>
+     <height>30</height>
+    </size>
+   </property>
    <property name="inputMethodHints">
     <set>Qt::ImhNone</set>
    </property>
@@ -255,6 +261,9 @@
    <property name="text">
     <string>Find</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
   </action>
   <action name="actionFind_next">
    <property name="text">
@@ -270,10 +279,16 @@
    <property name="text">
     <string>Replace</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
   </action>
   <action name="actionGo_to">
    <property name="text">
     <string>Go to</string>
+   </property>
+   <property name="shortcut">
+    <string/>
    </property>
   </action>
   <action name="actionSelect_all">

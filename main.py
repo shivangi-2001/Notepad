@@ -2,12 +2,13 @@ from PySide2.QtWidgets import *
 from PySide2.QtGui import  *
 from PySide2.QtCore import *
 from PySide2.QtPrintSupport import *
-import os
+import os, re
 
 from template.notepad import  Ui_Notepad
 from Tools.LineNumberTextEdit import PlainTextEdit
 from Tools.TextEdit import TextEdit
-
+from Tools.Find import Find_TextEdit
+from Tools.GoTo import GoTo
 
 class NotepadApp(QMainWindow, Ui_Notepad):
     def __init__(self):
@@ -52,6 +53,90 @@ class NotepadApp(QMainWindow, Ui_Notepad):
         self.actionSelect_all.triggered.connect(self.select_all)
         self.actionFont.triggered.connect(self.font_settings)
 
+        self.find_text_edit = Find_TextEdit()
+        self.actionFind.setCheckable(True)  # Ensure the action is checkable
+        self.actionFind.toggled.connect(self.toggle_find_text_edit)
+        self.go_to = GoTo()
+        self.actionGo_to.triggered.connect(self.Open_Go_To)
+        self.go_to.go_to_line.connect(self.go_to_line_text)
+        self.go_to.buttonBox.accepted.connect(self.go_to_ok_triggered)
+
+        self.actionUndo.setDisabled(True)
+        self.actionCut.setDisabled(True)
+        self.actionCopy.setDisabled(True)
+        self.actionDelete.setDisabled(True)
+        self.actionUndo.triggered.connect(self.customUndo)
+        self.actionCut.triggered.connect(self.customCut)
+        self.actionCopy.triggered.connect(self.customCopy)
+
+
+    def customUndo(self):
+        current_tab = self.tabWidget.currentWidget()
+        self.text_edit = current_tab.findChild(TextEdit)
+        if self.text_edit:
+            self.text_edit.undo()
+
+    def customCut(self):
+        current_tab = self.tabWidget.currentWidget()
+        self.text_edit = current_tab.findChild(TextEdit)
+        if self.text_edit:
+            self.text_edit.cut()
+
+    def customCopy(self):
+        current_tab = self.tabWidget.currentWidget()
+        self.text_edit = current_tab.findChild(TextEdit)
+        if self.text_edit:
+            self.text_edit.cut()
+
+    def go_to_ok_triggered(self):
+        line_number_text = self.go_to.GoToLineEdit.text()
+        try:
+            line_number = int(line_number_text)
+            if line_number <= 0:
+                print("Enter a number greater than 0")
+                self.go_to.GoToLineEdit.setFocus()
+                self.go_to.GoToLineEdit.setStyleSheet("border: 1px solid red;")
+                self.go_to.show()
+            else:
+                pass
+        except ValueError:
+            print("Invalid input. Enter a valid number.")
+            self.go_to.show()
+
+    def go_to_line_text(self):
+        line_number_text = self.go_to.GoToLineEdit.text()
+        if line_number_text.isdigit():
+            line_number = int(line_number_text)
+            current_tab = self.tabWidget.currentWidget()
+            self.text_edit = current_tab.findChild(TextEdit)
+            if self.text_edit:
+                cursor = self.text_edit.textCursor()
+                cursor.movePosition(QTextCursor.Start)  # Move to the beginning
+                for _ in range(line_number - 1):
+                    cursor.movePosition(QTextCursor.Down)  # Move down to the desired line
+
+                # Set the cursor in the text edit
+                self.text_edit.setTextCursor(cursor)
+
+
+    def Open_Go_To(self):
+        rect = self.geometry()
+        geo = self.go_to.geometry()
+        x = rect.x() + (rect.width() - geo.width()) / 2
+        y = rect.y() + (rect.height() - geo.height()) / 2
+        self.go_to.move(x, y)
+        self.go_to.show()
+
+
+
+    def toggle_find_text_edit(self):
+        if not self.find_text_edit.isVisible():
+            self.find_text_edit.setVisible(True)
+            self.statusBar.addWidget(self.find_text_edit)
+            QTimer.singleShot(0, self.find_text_edit.FindTextEdit.setFocus)
+        else:
+            self.find_text_edit.setVisible(False)
+
     def font_settings(self):
             (ok, font) = QFontDialog.getFont()
             if ok:
@@ -94,9 +179,9 @@ class NotepadApp(QMainWindow, Ui_Notepad):
     def toggle_word_wrap(self):
         current_tab = self.tabWidget.currentWidget()
         if current_tab:
-            text_edit = current_tab.findChild(TextEdit)
-            if text_edit:
-                text_edit.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere if self.actionWord_Wrap.isChecked() else QTextOption.NoWrap)
+            self.text_edit = current_tab.findChild(TextEdit)
+            if self.text_edit:
+                self.text_edit.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere if self.actionWord_Wrap.isChecked() else QTextOption.NoWrap)
 
 
     def create_new_tab(self):
@@ -125,12 +210,15 @@ class NotepadApp(QMainWindow, Ui_Notepad):
     def handle_text_change(self, plain_text_edit, text_edit):
         current_tab = self.tabWidget.currentWidget()
         if current_tab:
-            text_edit = current_tab.findChild(TextEdit)
+            self.text_edit = current_tab.findChild(TextEdit)
             plain_text_edit = current_tab.findChild(PlainTextEdit)
+            if self.text_edit.toPlainText():
+                self.actionUndo.setDisabled(False)
+
             if plain_text_edit.number > 999:
                 plain_text_edit.setMaximumSize(50, 16777215)
 
-            cursor = text_edit.textCursor()
+            cursor = self.text_edit.textCursor()
             cursor.movePosition(QTextCursor.End)
             plain_text_edit.setTextCursor(cursor)
 
@@ -156,6 +244,13 @@ class NotepadApp(QMainWindow, Ui_Notepad):
     def new_window(self):
         new_notepad = NotepadApp()
         new_notepad.show()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_A and event.modifiers() & Qt.ControlModifier:
+            self.actionCopy.setEnabled(True)
+            self.actionCut.setEnabled(True)
+        else:
+            super().keyPressEvent(event)
 
     def update_tab_name(self):
         current_tab = self.tabWidget.currentWidget()
