@@ -18,6 +18,7 @@ class NotepadApp(QMainWindow, Ui_Notepad):
         self.modified_tabs = {}
         self.file_path = None
         self.new_tab()
+        self.setWindowIcon(QIcon("icons/window_icon.png"))
 
         self.actionNew.triggered.connect(self.new_tab)
         self.tabWidget.tabCloseRequested.connect(lambda index: self.tabWidget.removeTab(index))
@@ -68,6 +69,13 @@ class NotepadApp(QMainWindow, Ui_Notepad):
         self.actionUndo.triggered.connect(self.customUndo)
         self.actionCut.triggered.connect(self.customCut)
         self.actionCopy.triggered.connect(self.customCopy)
+
+        self.actionNew.setIcon(QIcon("icons/newTab.png"))
+        self.actionOpen.setIcon(QIcon("icons/open.png"))
+        self.actionSave.setIcon(QIcon("icons/save.png"))
+        self.actionSave_As.setIcon(QIcon("icons/saveAs.png"))
+        self.actionPrint.setIcon(QIcon("icons/print.png"))
+        self.actionNew_Window.setIcon(QIcon("icons/newWindows.png"))
 
 
     def customUndo(self):
@@ -199,7 +207,7 @@ class NotepadApp(QMainWindow, Ui_Notepad):
 
     def new_tab(self):
         new_tab = self.create_new_tab()
-        self.tabWidget.addTab(new_tab, f"Untitled {self.tab_counter}")
+        self.tabWidget.addTab(new_tab, QIcon("icons/newTab.png"), f"Untitled {self.tab_counter}")
         self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(new_tab))
         self.tab_counter += 1
 
@@ -264,7 +272,7 @@ class NotepadApp(QMainWindow, Ui_Notepad):
     def open(self):
         current_tab = self.tabWidget.currentWidget()
         if current_tab:
-            self.file_path, _ = QFileDialog.getOpenFileName(current_tab, "Open File", "","NJText Files (*.njtext);;Text Files (*.txt);;All Files (*)", options=QFileDialog.DontUseNativeDialog)
+            self.file_path, _ = QFileDialog.getOpenFileName(current_tab, "Open File", "","NJText Files (*.njtxt);;Text Files (*.txt);;All Files (*)", options=QFileDialog.DontUseNativeDialog)
             if self.file_path:
                 new_tab = self.create_new_tab()
                 self.tabWidget.addTab(new_tab, os.path.basename(self.file_path))
@@ -302,7 +310,7 @@ class NotepadApp(QMainWindow, Ui_Notepad):
             if self.file_path:
                 _, file_extension = os.path.splitext(self.file_path)
                 if not file_extension:
-                    default_extension = ".txt"
+                    default_extension = ".njtxt"
                     self.file_path += default_extension
 
                 text_content = current_tab.findChild(TextEdit).toPlainText()
@@ -310,7 +318,8 @@ class NotepadApp(QMainWindow, Ui_Notepad):
                     file.write(text_content)
 
                 tab_index = self.tabWidget.indexOf(current_tab)
-                tab_name = os.path.basename(self.file_path).replace(file_extension, "")
+                # tab_name = os.path.basename(self.file_path).replace(file_extension, "")
+                tab_name = os.path.splitext(os.path.basename(self.file_path))[0]
                 self.tabWidget.setTabText(tab_index, tab_name)
                 self.modified_tabs[current_tab] = False
                 self.update_tab_name()
@@ -353,7 +362,7 @@ class NotepadApp(QMainWindow, Ui_Notepad):
     def save_tab(self, tab_widget, base_filename, index):
         _, file_extension = os.path.splitext(base_filename)
         if not file_extension:
-            default_extension = ".txt"
+            default_extension = ".njtxt"
             base_filename += default_extension
 
         directory, base_name = os.path.split(base_filename)
