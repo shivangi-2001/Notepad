@@ -1,6 +1,6 @@
-from PySide2.QtWidgets import *
-from PySide2.QtCore import *
-from PySide2.QtGui import *
+from PySide6.QtWidgets import *
+from PySide6.QtCore import *
+from PySide6.QtGui import *
 
 class GoTo(QDialog):
     go_to_line = Signal()
@@ -32,7 +32,7 @@ class GoTo(QDialog):
         font1 = QFont()
         font1.setPointSize(18)
         font1.setBold(False)
-        font1.setWeight(50)
+        font1.setWeight(QFont.Weight.Normal)
         self.label.setFont(font1)
 
         self.gridLayout_2.addWidget(self.label, 0, 1, 1, 1)
