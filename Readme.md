@@ -75,7 +75,7 @@ This tutorial walks you through:
 
 Run the video in the github file to view, how it works.🤩
 
-[![Watch the video](photos/sc1.png)](notepad.mp4)
+[![Watch the video](photos/sc2.png)](notepad.mp4)
 
 Please let me ✌🏻 know your feedback in email: ***shivangikeshri21@gmail.com***
 
